@@ -3,7 +3,9 @@ FROM python:3.7
 RUN apt-get -yqq update && \
     apt-get -yqq install unzip && \
     apt-get -yqq install chromium && \
+    apt-get -yqq install fonts-ipafont && \
     rm -rf /var/lib/apt/lists/*
+# ipafont is for debug
 
 RUN CHROMEDRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE) && \
     curl -OL http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
