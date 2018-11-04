@@ -11,6 +11,7 @@ from selenium import webdriver
 RAKUTEN_ID = os.environ['RAKUTEN_ID']
 RAKUTEN_PASS = os.environ['RAKUTEN_PASS']
 
+month_page = 0
 
 def init_selenium_driver():
     global driver
@@ -36,11 +37,24 @@ driver.find_element_by_id("nav-global_ehis").click()
 logger.info("display monthly totals")
 time.sleep(1)  # wait redirection
 
-driver.find_elements_by_css_selector(".history_table .totalButton")[0].click()
-raw = driver.find_element_by_id("his_record").get_attribute("value")
-# json.loads decodes unicode-escape, but '\u3000' is left as is
-record = json.loads(raw.replace('\u3000', '　'))
-print(record)
+driver.find_elements_by_css_selector(".history_table .totalButton")[month_page].click()
+
+page_len = len(driver.find_elements_by_css_selector("#resultNavi li.list a"))
+records = []
+for num in range(page_len):
+    driver.execute_script(f'monthlyDetails.searchByPagingLink({num+1})')
+    time.sleep(0.5)
+    trs = driver.find_elements_by_css_selector(".shop_table tr")[1:] # without header
+    for tr in trs:
+        records.append({
+            'day':      tr.find_element_by_class_name("day").text,
+            'name':     tr.find_element_by_class_name("name").text,
+            'category': tr.find_element_by_class_name("category").text,
+            'price':    tr.find_element_by_class_name("money").text,
+        })
+
+with open(f'out_{month_page}.json', mode='w') as f:
+    f.write(json.dumps(records, ensure_ascii=False))
 logger.info("get latest month history")
 
 driver.quit()
