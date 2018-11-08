@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "^10.12.3",
+    "@types/puppeteer": "^1.10.0",
     "tslint": "^5.11.0"
   }
 }
