@@ -3,11 +3,9 @@ import * as puppeteer from "puppeteer";
 const PITAPA_ID = process.env.PITAPA_ID;
 const PITAPA_PASS = process.env.PITAPA_PASS;
 
-const waitForDownload = () => new Promise((resolve) => setTimeout(resolve, 500)); // temporary hack
+const waitForDownload = (page: puppeteer.Page) => page.waitFor(500); // temporary hack
 
-(async () => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+async function run(page: puppeteer.Page) {
     await (page as any)._client.send(
         "Page.setDownloadBehavior",
         { behavior: "allow", downloadPath: "." },
@@ -30,8 +28,20 @@ const waitForDownload = () => new Promise((resolve) => setTimeout(resolve, 500))
         }, i);
         await page.waitForSelector("body");
         await page.click("input[name='csvSubmit']");
-        await waitForDownload();
+        await waitForDownload(page);
     }
+}
 
+(async () => {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    try {
+        await run(page);
+    } catch (err) {
+        await page.screenshot({ path: "error.png", fullPage: true });
+        process.on("exit", () => {
+            process.exit(1);
+        });
+    }
     await browser.close();
 })();
